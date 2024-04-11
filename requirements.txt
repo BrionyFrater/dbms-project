@@ -10,3 +10,5 @@ MarkupSafe==2.1.2
 Werkzeug==2.2.2
 zipp==3.12.1
 faker==23.3.0
+Flask-Login==0.6.3
+Flask-WTF==1.2.1
