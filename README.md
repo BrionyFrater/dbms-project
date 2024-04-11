@@ -13,3 +13,14 @@ $ pip install -r requirements.txt
 $ flask --app app --debug run
 
 ```
+
+
+#### Regular Updates
+
+Regularly pull changes from main into your branch, also do it before merging into main
+
+```
+
+git pull origin main
+
+```
