@@ -1,7 +1,7 @@
 from flask import Flask, request, make_response
 import mysql.connector
 
-
+#not needed in our views because its already in __init__.py
 app = Flask(__name__)
 
 
