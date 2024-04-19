@@ -1,5 +1,5 @@
 Admin(adminid, fname, lname)
-Account(uid, adminid, password)
+Account(uid, adminid, fname, lname, password)
 User(uid, fname, name, phoneNum, address)
 CreateCrse(adminid, cid, dateCreated)
 Course (cid, cname, dateCreated)
