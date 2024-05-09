@@ -1,25 +1,22 @@
 CREATE DATABASE IF NOT EXISTS Project;
 USE Project;
 
-CREATE TABLE Admin (
-    adminid INT PRIMARY KEY,
-    fname VARCHAR(50),
-    lname VARCHAR(50)
-);
-
 CREATE TABLE Account (
     uid INT PRIMARY KEY,
+	fname VARCHAR(50),
+    lname VARCHAR(50),
+    phoneNum VARCHAR(15),
+    address VARCHAR(255),
+    user_role VARCHAR(50),
     adminid INT,
-    password VARCHAR(100),
-    FOREIGN KEY (adminid) REFERENCES Admin(adminid)
+    accountpassword VARCHAR(100)
 );
 
-CREATE TABLE User (
-    uid INT PRIMARY KEY,
-    fname VARCHAR(50),
-    name VARCHAR(50),
-    phoneNum VARCHAR(15),
-    address VARCHAR(255)
+CREATE TABLE Admin (
+	uid INT,
+    adminid INT PRIMARY KEY,
+    dateCreated DATETIME,
+    foreign key (uid) REFERENCES Account(uid)
 );
 
 CREATE TABLE CreateCrse (
@@ -36,8 +33,11 @@ CREATE TABLE Course (
 );
 
 CREATE TABLE Student (
-    uid INT PRIMARY KEY,
-    password CHAR(16)
+    stud_id INT PRIMARY KEY,
+    uid INT,
+    address VARCHAR(255),
+    password CHAR(16),
+    foreign key (uid) REFERENCES Account(uid)
 );
 
 CREATE TABLE Enrol (
@@ -50,34 +50,11 @@ CREATE TABLE Enrol (
 );
 
 CREATE TABLE Lecturer (
-    uid INT PRIMARY KEY,
-    password CHAR(16)
-);
-
-CREATE TABLE Event (
-    eid INT PRIMARY KEY,
-    cid CHAR(8),
-    name VARCHAR(255),
-    description TEXT,
-    dateCreated DATE,
-    dueDate DATE,
-    FOREIGN KEY (cid) REFERENCES Course(cid)
-);
-
-CREATE TABLE Forum (
-    fid INT PRIMARY KEY,
-    cid CHAR(8),
-    name VARCHAR(255),
-    dateCreated DATE,
-    FOREIGN KEY (cid) REFERENCES Course(cid)
-);
-
-CREATE TABLE Thread (
-    tid INT PRIMARY KEY,
-    fid INT,
-    title VARCHAR(255),
-    content TEXT,
-    FOREIGN KEY (fid) REFERENCES Forum(fid)
+    lec_id INT PRIMARY KEY,
+    uid INT,
+    department VARCHAR(255),
+    lecpassword char(10),
+    foreign key (uid) REFERENCES Account(uid)
 );
 
 CREATE TABLE Component (
@@ -86,6 +63,36 @@ CREATE TABLE Component (
     compType VARCHAR(30),
     PRIMARY KEY (comp_id, cid),
     FOREIGN KEY (cid) REFERENCES Course(cid)
+);
+
+CREATE TABLE Event (
+    eid INT PRIMARY KEY,
+    cid CHAR(8),
+    comp_id INT,
+    name VARCHAR(255),
+    description TEXT,
+    dateCreated DATE,
+    dueDate DATE,
+    FOREIGN KEY (cid) REFERENCES Course(cid),
+    foreign key (comp_id, cid) references Component(comp_id, cid)
+);
+
+CREATE TABLE Forum (
+    fid INT PRIMARY KEY,
+    cid CHAR(8),
+    comp_id INT,
+    name VARCHAR(255),
+    dateCreated DATE,
+    FOREIGN KEY (cid) REFERENCES Course(cid),
+    foreign key (comp_id, cid) references Component(comp_id, cid)
+);
+
+CREATE TABLE Thread (
+    tid INT PRIMARY KEY,
+    fid INT,
+    title VARCHAR(255),
+    content TEXT,
+    FOREIGN KEY (fid) REFERENCES Forum(fid)
 );
 
 CREATE TABLE Section (
