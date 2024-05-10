@@ -386,3 +386,104 @@ def create_assignment():
 ## -------------------
 ## Reports
 ## -------------------
+@app.route('/create_views', methods=['POST'])
+def create_sql_views():
+    try:
+        cnx = mysql.connector.connect(user=db_user, password=db_password,
+                                      host=db_host, database=db_database)
+        cursor = cnx.cursor()
+
+        # All courses that have 50 or more students
+        cursor.execute("""
+            CREATE OR REPLACE VIEW CoursesWith50 AS
+            SELECT c.cid, c.cname, COUNT(e.uid) AS student_count
+            FROM Course c
+            JOIN Enrol e ON c.cid = e.cid
+            GROUP BY c.cid
+            HAVING COUNT(e.uid) >= 50;
+        """)
+
+        # All students that do 5 or more courses
+        cursor.execute("""
+            CREATE OR REPLACE VIEW StudentEnroll5 AS
+            SELECT s.uid, a.fname, a.lname, COUNT(e.cid) AS course_count
+            FROM Student s
+            JOIN Enrol e ON s.uid = e.uid
+            JOIN Account a ON s.uid = a.uid
+            GROUP BY s.uid
+            HAVING COUNT(e.cid) >= 5;
+        """)
+
+        #All lecturers that teach 3 or more courses
+        cursor.execute("""
+            CREATE VIEW LecTeaches3 AS
+            SELECT l.uid, a.fname, a.lname, COUNT(cs.cid) AS course_count
+            FROM Lecturer l
+            JOIN Member m ON l.uid = m.uid
+            JOIN Account a ON l.uid = a.uid
+            JOIN Assigned cs ON l.uid = cs.uid
+            GROUP BY l.uid
+            HAVING COUNT(cs.cid) >= 3;
+        """)
+
+        #The 10 most enrolled courses
+        cursor.execute("""
+            CREATE VIEW MostEnrolledCourses AS
+            SELECT c.cid, c.cname, COUNT(e.uid) AS student_count
+            FROM Course c
+            JOIN Enrol e ON c.cid = e.cid
+            GROUP BY c.cid, c.cname
+            ORDER BY student_count DESC
+            LIMIT 10;              
+        """)
+
+        #The top 10 students with the highest overall averages
+        cursor.execute("""
+            CREATE VIEW StudentsHighestAverage AS
+            SELECT s.uid, a.fname, a.lname, AVG(su.grade) AS average_grade
+            FROM Student s
+            JOIN Account a ON s.uid = a.uid
+            LEFT JOIN Submit su ON s.uid = su.uid
+            GROUP BY s.uid, a.fname, a.lname
+            ORDER BY average_grade DESC
+            LIMIT 10;    
+        """)
+ 
+    
+        cnx.commit()
+        cursor.close()
+        cnx.close()
+
+        return jsonify({"message": "Views created"}), 201
+    except Exception as e:
+        return make_response({"error": str(e)}, 400)
+
+
+@app.route('/report', methods=['GET'])
+def get_report():
+    try:
+        cnx = mysql.connector.connect(user=db_user, password=db_password, host=db_host, database=db_database)
+        cursor = cnx.cursor()
+
+        views = [
+            "CoursesWith50",
+            "StudentEnroll5",
+            "LecTeaches3",
+            "MostEnrolledCourses",
+            "StudentsHighestAverage"
+        ]
+        
+        results = {}
+
+        for view_name in views:
+            cursor.execute(f"SELECT * FROM {view_name};")
+            view_data = cursor.fetchall()
+
+            results[view_name] = view_data
+
+        cursor.close()
+        cnx.close()
+
+        return jsonify(results), 200
+    except Exception as e:
+        return make_response({"error": str(e)}, 400)
