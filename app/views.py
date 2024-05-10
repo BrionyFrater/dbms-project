@@ -31,6 +31,8 @@ def registerUser():
 @app.route('/login', methods=['POST'])
 def login():
     # ○ A student/lecturer should be able to login with credentials
+    conn = mysql.connector.connect(user='uwi_user', password='uwi876', host='127.0.0.1',
+                                   database='uwi')
     cursor = conn.cursor()
     uid = request.json.get("uid")
     password = request.json.get("password")
@@ -76,8 +78,8 @@ def getCourses():
     # ○ Retrieve all the courses
     # ○ Retrieve courses for a particular student
     # ○ Retrieve courses taught by a particular lecturer
-    # conn = mysql.connector.connect(user='uwi_user', password='uwi876', host='127.0.0.1',
-    #                                database='uwi')
+    conn = mysql.connector.connect(user='uwi_user', password='uwi876', host='127.0.0.1',
+                                   database='uwi')
     cursor = conn.cursor()
     cursor.execute(f"SELECT * FROM Course")
     return make_response({"success" : "Course(s) Retrieved"}, 201)
@@ -87,8 +89,8 @@ def getCourse(uid):
     # ○ Retrieve all the courses
     # ○ Retrieve courses for a particular student
     # ○ Retrieve courses taught by a particular lecturer
-    # conn = mysql.connector.connect(user='uwi_user', password='uwi876', host='127.0.0.1',
-    #                                database='uwi')
+    conn = mysql.connector.connect(user='uwi_user', password='uwi876', host='127.0.0.1',
+                                   database='uwi')
     cursor = conn.cursor()
     cursor.execute(f"SELECT * FROM Assigned WHERE '{uid}' == Assigned.uid")
     return make_response({"success" : "Course(s) Retrieved"}, 201)
@@ -97,10 +99,14 @@ def getCourse(uid):
 def registerForCourse():
     # ○ Only one lecturer can be assigned to a course
     # ○ Students should be able to register for a course
+    conn = mysql.connector.connect(user='uwi_user', password='uwi876', host='127.0.0.1',
+                                   database='uwi')
     cursor = conn.cursor()
     data = request.json
     uid = data['uid']
     cid = data['cid']
+    semester = data['semester']
+    year = data['year']
     user_role = data['user_role']
 
     if user_role == "student":
@@ -113,7 +119,7 @@ def registerForCourse():
     user = cursor.fetchone()
 
     if user:
-        cursor.execute(f"INSERT INTO Assigned VALUES('{cid}', '{uid}')")
+        cursor.execute(f"INSERT INTO Assigned VALUES('{cid}', '{uid}', '{semester}', '{year}')")
         conn.commit()
     else:
         return make_response({'message': 'User not found'})
