@@ -26,8 +26,8 @@ def registerUser():
     address = data['address']
     uid = data['uid']
     password = data['password']
-    cursor.execute("INSERT INTO Account VALUES(%s, %s, %s, %s, %s, %s, 1, %s)",
-                   (uid, fname, lname, phoneNum, address, user_role, password))
+    cursor.execute("INSERT INTO Account (fname, lname, phoneNum, address, user_role, password) VALUES(%s, %s, %s, %s, %s, %s)",
+                   (fname, lname, phoneNum, address, user_role, password))
     conn.commit()
     cursor.close()
     return make_response({'message':'User registered successfully'}, 201)
