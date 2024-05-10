@@ -3,16 +3,22 @@ from flask import render_template, request, make_response
 from app import app
 import mysql.connector
 
-# conn = mysql.connector.connect(user='uwi_user', password='uwi876', host='127.0.0.1',
-#                                    database='uwi')
+db_config = {
+    'user': 'uwi_user',
+    'password': 'uwi876',
+    'host': '127.0.0.1',
+    'database': 'Project'
+}
+
+conn = mysql.connector.connect(**db_config)
 
 @app.route('/registeruser', methods=['POST'])
 def registerUser():
     # ○ A student/lecturer should be able to create an account.
     # ○ A user should be able to register with a userid and password
     # ○ A user can be an admin, lecturer or student
-    conn = mysql.connector.connect(user='uwi_user', password='uwi876', host='127.0.0.1',
-                                   database='uwi')
+    # conn = mysql.connector.connect(user='uwi_user', password='uwi876', host='127.0.0.1',
+    #                                database='uwi')
     cursor = conn.cursor()
     data = request.json
     fname = data['first_name']
@@ -31,8 +37,8 @@ def registerUser():
 @app.route('/login', methods=['POST'])
 def login():
     # ○ A student/lecturer should be able to login with credentials
-    conn = mysql.connector.connect(user='uwi_user', password='uwi876', host='127.0.0.1',
-                                   database='uwi')
+    # conn = mysql.connector.connect(user='uwi_user', password='uwi876', host='127.0.0.1',
+    #                                database='uwi')
     cursor = conn.cursor()
     uid = request.json.get("uid")
     password = request.json.get("password")
@@ -57,8 +63,8 @@ def login():
 def createCourse(adminid):
     # ○ An admin should be able to create a course
     # ○ Only admins should be able to create a course
-    conn = mysql.connector.connect(user='uwi_user', password='uwi876', host='127.0.0.1',
-                                   database='uwi')
+    # conn = mysql.connector.connect(user='uwi_user', password='uwi876', host='127.0.0.1',
+    #                                database='uwi')
     cursor = conn.cursor()
     content = request.json
     if adminid == content['id']:
@@ -78,8 +84,8 @@ def getCourses():
     # ○ Retrieve all the courses
     # ○ Retrieve courses for a particular student
     # ○ Retrieve courses taught by a particular lecturer
-    conn = mysql.connector.connect(user='uwi_user', password='uwi876', host='127.0.0.1',
-                                   database='uwi')
+    # conn = mysql.connector.connect(user='uwi_user', password='uwi876', host='127.0.0.1',
+    #                                database='uwi')
     cursor = conn.cursor()
     cursor.execute(f"SELECT * FROM Course")
     return make_response({"success" : "Course(s) Retrieved"}, 201)
@@ -89,8 +95,8 @@ def getCourse(uid):
     # ○ Retrieve all the courses
     # ○ Retrieve courses for a particular student
     # ○ Retrieve courses taught by a particular lecturer
-    conn = mysql.connector.connect(user='uwi_user', password='uwi876', host='127.0.0.1',
-                                   database='uwi')
+    # conn = mysql.connector.connect(user='uwi_user', password='uwi876', host='127.0.0.1',
+    #                                database='uwi')
     cursor = conn.cursor()
     cursor.execute(f"SELECT * FROM Assigned WHERE '{uid}' == Assigned.uid")
     return make_response({"success" : "Course(s) Retrieved"}, 201)
@@ -99,8 +105,8 @@ def getCourse(uid):
 def registerForCourse():
     # ○ Only one lecturer can be assigned to a course
     # ○ Students should be able to register for a course
-    conn = mysql.connector.connect(user='uwi_user', password='uwi876', host='127.0.0.1',
-                                   database='uwi')
+    # conn = mysql.connector.connect(user='uwi_user', password='uwi876', host='127.0.0.1',
+    #                                database='uwi')
     cursor = conn.cursor()
     data = request.json
     uid = data['uid']
