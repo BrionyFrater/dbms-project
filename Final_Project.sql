@@ -4,32 +4,33 @@ GRANT ALL PRIVILEGES ON Project.* TO 'project_user'@'localhost';
 
 USE Project;
 
-CREATE TABLE Admin (
-    adminid INT PRIMARY KEY,
-    fname VARCHAR(50),
-    lname VARCHAR(50)
-);
+--NEW STUFF---
 
 CREATE TABLE Account (
     uid INT PRIMARY KEY,
-    adminid INT,
-    password VARCHAR(100),
-    FOREIGN KEY (adminid) REFERENCES Admin(adminid)
-);
-
-CREATE TABLE User (
-    uid INT PRIMARY KEY,
-    fname VARCHAR(50),
-    name VARCHAR(50),
+	fname VARCHAR(50),
+    lname VARCHAR(50),
     phoneNum VARCHAR(15),
-    address VARCHAR(255)
+    user_role VARCHAR(50),
+    password VARCHAR(100)
 );
 
-CREATE TABLE CreateCrse (
-    adminid INT,
-    cid INT PRIMARY KEY,
-    dateCreated DATE,
-    FOREIGN KEY (adminid) REFERENCES Admin(adminid)
+CREATE TABLE Student (
+    uid INT PRIMARY KEY,
+    address VARCHAR(255),
+    FOREIGN KEY (uid) REFERENCES Account(uid)
+);
+
+CREATE TABLE Admin (
+	uid INT,
+    dateCreated DATETIME,
+    FOREIGN KEY (uid) REFERENCES Account(uid)
+);
+
+CREATE TABLE Lecturer (
+    uid INT PRIMARY KEY,
+    department VARCHAR(255)
+    FOREIGN KEY (uid) REFERENCES Account(uid)
 );
 
 CREATE TABLE Course (
@@ -38,9 +39,12 @@ CREATE TABLE Course (
     dateCreated DATETIME
 );
 
-CREATE TABLE Student (
-    uid INT PRIMARY KEY,
-    password CHAR(16)
+CREATE TABLE CreateCrse (
+    --cid INT PRIMARY KEY,
+    cid CHAR(8) PRIMARY KEY,
+    uid INT,
+    dateCreated DATE,
+    FOREIGN KEY (uid) REFERENCES Admin(uid)
 );
 
 CREATE TABLE Enrol (
@@ -52,54 +56,73 @@ CREATE TABLE Enrol (
     FOREIGN KEY (uid) REFERENCES Student(uid)
 );
 
-CREATE TABLE Lecturer (
+CREATE TABLE Member (
     uid INT PRIMARY KEY,
-    password CHAR(16)
+    type CHAR
+
+    --possibly remove
+    FOREIGN KEY (uid) REFERENCES Account(uid)
 );
 
-CREATE TABLE Event (
-    eid INT PRIMARY KEY,
+CREATE TABLE Assigned (
     cid CHAR(8),
-    name VARCHAR(255),
-    description TEXT,
-    dateCreated DATE,
-    dueDate DATE,
-    FOREIGN KEY (cid) REFERENCES Course(cid)
+    uid INT,
+
+    --new attriutes
+    semester INT,
+    year INT
+
+    PRIMARY KEY (cid, uid, semester, year)
+    FOREIGN KEY (cid) REFERENCES Course(cid),
+    FOREIGN KEY (uid) REFERENCES Member(uid)
 );
 
-CREATE TABLE Forum (
-    comp_id INT,
-    cid CHAR(8),
-    name VARCHAR(255),
-    dateCreated DATE,
-    PRIMARY KEY (comp_id, cid),
-    FOREIGN KEY (comp_id, cid) REFERENCES Component(comp_id, cid)
-);
-
-CREATE TABLE Thread (
-    tid INT PRIMARY KEY,
-    parent INT,
-    title VARCHAR(255),
-    content TEXT,
-    dateCreated DATE,
-    FOREIGN KEY (parent) REFERENCES Forum(comp_id)
-);
-
-CREATE TABLE Reply (
-    reply_id INT PRIMARY KEY,
-    parent INT,
-    author VARCHAR(255),
-    content TEXT,
-    dateCreated DATE,
-    FOREIGN KEY (parent) REFERENCES Thread(tid)
-);
 
 CREATE TABLE Component (
     comp_id INT,
     cid CHAR(8),
     compType VARCHAR(30),
     PRIMARY KEY (comp_id, cid),
-    FOREIGN KEY (cid) REFERENCES Course(cid)
+
+    --possible remove cascade delete
+    FOREIGN KEY (cid) REFERENCES Course(cid) ON DELETE CASCADE
+);
+
+CREATE TABLE Event (
+    eid INT PRIMARY KEY,
+    cid CHAR(8),
+    comp_id INT,
+    name VARCHAR(255),
+    description TEXT,
+    dateCreated DATE,
+    dueDate DATE,
+
+    --PRIMARY KEY (comp_id, cid)
+    
+    FOREIGN KEY (cid) REFERENCES Course(cid),
+    FOREIGN KEY (comp_id, cid) REFERENCES Component(comp_id, cid)
+);
+
+CREATE TABLE Forum (
+    fid INT PRIMARY KEY,
+    cid CHAR(8),
+    comp_id INT,
+    name VARCHAR(255),
+    dateCreated DATE,
+
+    --added new primary
+    --PRIMARY KEY (comp_id, cid)
+
+    FOREIGN KEY (cid) REFERENCES Course(cid),
+    FOREIGN KEY (comp_id, cid) REFERENCES Component(comp_id, cid)
+);
+
+CREATE TABLE Thread (
+    tid INT PRIMARY KEY,
+    fid INT,
+    title VARCHAR(255),
+    content TEXT,
+    FOREIGN KEY (fid) REFERENCES Forum(fid)
 );
 
 CREATE TABLE Section (
@@ -132,17 +155,6 @@ CREATE TABLE Submit (
     FOREIGN KEY (uid) REFERENCES Student(uid)
 );
 
-CREATE TABLE Member (
-    uid INT PRIMARY KEY,
-    type CHAR
-);
-
-CREATE TABLE Assigned (
-    cid CHAR(8),
-    uid INT,
-    FOREIGN KEY (cid) REFERENCES Course(cid),
-    FOREIGN KEY (uid) REFERENCES Member(uid)
-);
 
 CREATE TABLE ModifySection (
     uid INT,
