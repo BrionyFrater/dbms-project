@@ -1,10 +1,6 @@
 CREATE DATABASE IF NOT EXISTS Project;
--- CREATE USER 'project_user'@'localhost' IDENTIFIED BY '123';
-GRANT ALL PRIVILEGES ON Project.* TO 'project_user'@'localhost';
 
 USE Project;
-
---NEW STUFF---
 
 CREATE TABLE Account (
     uid INT PRIMARY KEY,
@@ -29,7 +25,7 @@ CREATE TABLE Admin (
 
 CREATE TABLE Lecturer (
     uid INT PRIMARY KEY,
-    department VARCHAR(255)
+    department VARCHAR(255),
     FOREIGN KEY (uid) REFERENCES Account(uid)
 );
 
@@ -40,11 +36,18 @@ CREATE TABLE Course (
 );
 
 CREATE TABLE CreateCrse (
-    --cid INT PRIMARY KEY,
     cid CHAR(8) PRIMARY KEY,
     uid INT,
     dateCreated DATE,
     FOREIGN KEY (uid) REFERENCES Admin(uid)
+);
+
+CREATE TABLE Component (
+    comp_id INT,
+    cid CHAR(8),
+    compType VARCHAR(30),
+    PRIMARY KEY (comp_id, cid),
+    FOREIGN KEY (cid) REFERENCES Course(cid) ON DELETE CASCADE
 );
 
 CREATE TABLE Enrol (
@@ -58,38 +61,25 @@ CREATE TABLE Enrol (
 
 CREATE TABLE Member (
     uid INT PRIMARY KEY,
-    type CHAR
+    type CHAR,
 
-    --possibly remove
     FOREIGN KEY (uid) REFERENCES Account(uid)
 );
 
 CREATE TABLE Assigned (
     cid CHAR(8),
     uid INT,
-
-    --new attriutes
     semester INT,
-    year INT
+    year INT,
 
-    PRIMARY KEY (cid, uid, semester, year)
+    PRIMARY KEY (cid, uid, semester, year),
     FOREIGN KEY (cid) REFERENCES Course(cid),
     FOREIGN KEY (uid) REFERENCES Member(uid)
 );
 
 
-CREATE TABLE Component (
-    comp_id INT,
-    cid CHAR(8),
-    compType VARCHAR(30),
-    PRIMARY KEY (comp_id, cid),
-
-    --possible remove cascade delete
-    FOREIGN KEY (cid) REFERENCES Course(cid) ON DELETE CASCADE
-);
-
 CREATE TABLE Event (
-    --eid INT PRIMARY KEY,
+   
     cid CHAR(8),
     comp_id INT,
     name VARCHAR(255),
@@ -97,19 +87,19 @@ CREATE TABLE Event (
     dateCreated DATE,
     dueDate DATE,
 
-    PRIMARY KEY (comp_id, cid)
+    PRIMARY KEY (comp_id, cid), 
     FOREIGN KEY (comp_id, cid) REFERENCES Component(comp_id, cid)
 );
 
 CREATE TABLE Forum (
-    --fid INT PRIMARY KEY,
+    
     cid CHAR(8),
     comp_id INT,
     name VARCHAR(255),
     dateCreated DATE,
 
-    --added new primary
-    PRIMARY KEY (comp_id, cid)
+   
+    PRIMARY KEY (comp_id, cid),
     FOREIGN KEY (comp_id, cid) REFERENCES Component(comp_id, cid)
 );
 
