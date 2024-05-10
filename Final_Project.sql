@@ -3,7 +3,7 @@ CREATE DATABASE IF NOT EXISTS Project;
 USE Project;
 
 CREATE TABLE Account (
-    uid INT PRIMARY KEY,
+    uid INT AUTO_INCREMENT PRIMARY KEY,
 	fname VARCHAR(50),
     lname VARCHAR(50),
     phoneNum VARCHAR(15),
@@ -43,7 +43,7 @@ CREATE TABLE CreateCrse (
 );
 
 CREATE TABLE Component (
-    comp_id INT,
+    comp_id INT AUTO_INCREMENT,
     cid CHAR(8),
     compType VARCHAR(30),
     PRIMARY KEY (comp_id, cid),
@@ -91,6 +91,14 @@ CREATE TABLE Event (
     FOREIGN KEY (comp_id, cid) REFERENCES Component(comp_id, cid)
 );
 
+CREATE TABLE ModifyEvents (
+    uid INT,
+    comp_id INT,
+    cid CHAR(8),
+    FOREIGN KEY (uid) REFERENCES Lecturer(uid),
+    FOREIGN KEY (comp_id, cid) REFERENCES Event(comp_id, cid)
+);
+
 CREATE TABLE Forum (
     
     cid CHAR(8),
@@ -133,15 +141,7 @@ CREATE TABLE ModifySection (
     uid INT,
     comp_id INT,
     cid CHAR(8),
-    FOREIGN KEY (uid) REFERENCES Account(uid),
-    FOREIGN KEY (comp_id, cid) REFERENCES Section(comp_id, cid)
-);
-
-CREATE TABLE ModifyItem (
-    uid INT,
-    comp_id INT,
-    cid CHAR(8),
-    FOREIGN KEY (uid) REFERENCES Account(uid),
+    FOREIGN KEY (uid) REFERENCES Lecturer(uid),
     FOREIGN KEY (comp_id, cid) REFERENCES Section(comp_id, cid)
 );
 
@@ -153,6 +153,14 @@ CREATE TABLE SectionItems (
     parent_id INT,
     parent_cid CHAR(8),
     FOREIGN KEY (parent_id, parent_cid) REFERENCES Section(comp_id, cid)
+);
+
+CREATE TABLE ModifyItem (
+    uid INT,
+    item_id INT,
+    
+    FOREIGN KEY (uid) REFERENCES Lecturer(uid),
+    FOREIGN KEY (item_id) REFERENCES SectionItems(item_id)
 );
 
 CREATE TABLE Assignment (

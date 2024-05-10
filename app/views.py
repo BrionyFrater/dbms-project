@@ -4,53 +4,22 @@ import mysql.connector
 
 db_user = 'project_user'
 db_password = '123'
-loggedInUser = {
-    'uid' : 618,
-    'name': 'Greg Han',
-    'role': 'Lecturer'
-}
+db_host = '127.0.0.1'
+db_database = 'Project'
 
-loggedInStud = {
-    'uid' : 400,
-    'name': 'Luke Richer',
-    'role': 'Student'
-}
+
 @app.route('/', methods=['GET'])
 def hello_world():
     return "Hello👋, This is the API for our Virtual Learning Environment"
 
-# @app.route('/get_threads/<forum_id>', methods=['GET'])
-# def get_threads(forum_id):
-#     try:
-#         cnx = mysql.connector.connect(user=db_user, password=db_password,
-#                                 host='127.0.0.1',
-#                                 database='Project')
-#         cursor = cnx.cursor()
-#         cursor.execute(f"SELECT tid, title, content, dateCreated from Thread WHERE parent={forum_id}")
-#         threads = []
-#         for tid, title, content, dateCreated in cursor:
-#             thread = {}
-#             thread['id'] = tid
-#             thread['title'] = title
-#             thread['content'] = content
-#             thread['dateCreated'] = dateCreated
-
-#             cursor.execute(f"SELECT reply_id, content, dateCreated from Reply WHERE parent={tid}")
-
-#             threads.append(thread)
-#         cursor.close()
-#         cnx.close()
-#         return make_response(threads, 200)
-#     except Exception as e:
-#         return make_response({'error': str(e)}, 400)
 
 #get thread and first level replies
 @app.route('/get_threads/<forum_id>', methods=['GET'])
 def get_threads(forum_id):
     try:
         cnx = mysql.connector.connect(user=db_user, password=db_password,
-                                       host='127.0.0.1',
-                                       database='Project')
+                                       host=db_host,
+                                       database=db_database)
         cursor = cnx.cursor()
 
         cursor.execute(f"SELECT tid, title, content, dateCreated FROM Thread WHERE parent = {forum_id}")
@@ -94,8 +63,8 @@ def get_threads(forum_id):
 def add_thread():
     try:
         cnx = mysql.connector.connect(user=db_user, password=db_password,
-                                       host='127.0.0.1',
-                                       database='Project')
+                                       host=db_host,
+                                       database=db_database)
         cursor = cnx.cursor()
 
         # get JSON request
@@ -104,11 +73,12 @@ def add_thread():
         title = content['title']
         thread_content = content['content']
         date_created = content['createdAt']
+        current_user = content['uid']
 
-        cursor.execute(f"INSERT INTO Thread (parent, title, content, dateCreated) VALUES ({forum_id}, {title}, {thread_content}, {date_created})")
+        cursor.execute(f"INSERT INTO Thread (parent, title, content, dateCreated) VALUES ({forum_id}, '{title}', '{thread_content}', '{date_created}')")
 
         tid = cursor.lastrowid
-        cursor.execute(f"INSERT INTO ModifyThread (uid, tid) VALUES ({loggedInUser['uid']}, {tid})")
+        cursor.execute(f"INSERT INTO ModifyThread (uid, tid) VALUES ({current_user}, {tid})")
 
         cnx.commit()
         cursor.close()
@@ -126,8 +96,8 @@ def add_thread():
 def get_replies(parent_id):
     try:
         cnx = mysql.connector.connect(user=db_user, password=db_password,
-                                       host='127.0.0.1',
-                                       database='Project')
+                                       host=db_host,
+                                       database=db_database)
         cursor = cnx.cursor()
 
         replies = []
@@ -159,8 +129,8 @@ def get_replies(parent_id):
 def add_reply():
     try:
         cnx = mysql.connector.connect(user=db_user, password=db_password,
-                                       host='127.0.0.1',
-                                       database='Project')
+                                       host=db_host,
+                                       database=db_database)
         cursor = cnx.cursor()
 
         content = request.json
@@ -169,7 +139,7 @@ def add_reply():
         reply_content = content['content']
         date_created = content['createdAt']
 
-        cursor.execute(f"INSERT INTO Thread (parent, author, content, dateCreated) VALUES ({parent_id}, {author}, {reply_content}, {date_created})")
+        cursor.execute(f"INSERT INTO Thread (parent, author, content, dateCreated) VALUES ({parent_id}, {author}, '{reply_content}', '{date_created}')")
         
         cnx.commit()
         cursor.close()
@@ -189,8 +159,8 @@ def add_reply():
 def add_section():
     try:
         cnx = mysql.connector.connect(user=db_user, password=db_password,
-                                       host='127.0.0.1',
-                                       database='Project')
+                                       host=db_host,
+                                       database=db_database)
         cursor = cnx.cursor()
 
         content = request.json
@@ -199,14 +169,14 @@ def add_section():
         secName = content['section_name']
         lect_id = content['uid']
 
-        cursor.execute(f"INSERT INTO Component (cid, compType) VALUES ({cid}, 'Section')")
+        cursor.execute(f"INSERT INTO Component (cid, compType) VALUES ('{cid}', 'Section')")
 
         comp_id = cursor.lastrowid
         
-        cursor.execute(f"INSERT INTO Section VALUES ({comp_id}, {cid}, {secName})")
+        cursor.execute(f"INSERT INTO Section VALUES ({comp_id}, '{cid}', '{secName}')")
 
 
-        cursor.execute(f"INSERT INTO ModifySection VALUES ({lect_id}, {comp_id}, {cid})")
+        cursor.execute(f"INSERT INTO ModifySection VALUES ({lect_id}, {comp_id}, '{cid}')")
 
         
         cnx.commit()
@@ -223,26 +193,25 @@ def add_section():
 def add_sectionItem():
     try:
         cnx = mysql.connector.connect(user=db_user, password=db_password,
-                                       host='127.0.0.1',
-                                       database='Project')
+                                       host=db_host,
+                                       database=db_database)
         cursor = cnx.cursor()
 
         content = request.json
+        lect_id = content['uid']
         parent_id = content['sec_id']
         parent_cid = content['cid']
         secItemName = content['item_name']
         itemType = content['item_type']
         contentPath = content['contentPath']
 
-        cursor.execute(f"INSERT INTO SectionItems VALUES ({parent_id}, {parent_cid}, {secItemName}, {itemType}, {contentPath})")
+        cursor.execute(f"INSERT INTO SectionItems VALUES ({parent_id}, '{parent_cid}', '{secItemName}', '{itemType}', '{contentPath}')")
         item_id = cursor.lastrowid
 
 
         #add to modify items table
-        lect_id = loggedInUser['uid']
         cursor.execute(f"INSERT INTO ModifyItem VALUES ({item_id}, {lect_id})")
 
-        
         cnx.commit()
         cursor.close()
         cnx.close()
@@ -257,8 +226,8 @@ def add_sectionItem():
 def get_course_sections(cid):
     try:
         cnx = mysql.connector.connect(user=db_user, password=db_password,
-                                       host='127.0.0.1',
-                                       database='Project')
+                                       host=db_host,
+                                       database=db_database)
         cursor = cnx.cursor(dictionary=True) 
         
         cursor.execute(f"SELECT comp_id, secName FROM Section WHERE cid = '{cid}'")
@@ -272,7 +241,7 @@ def get_course_sections(cid):
             section_name = section['secName']
 
             # get all section items for each section
-            cursor.execute(f"SELECT item_id, item_name, item_type, contentPath FROM SectionItems WHERE parent_id = '{comp_id}' AND parent_cid = '{cid}'")
+            cursor.execute(f"SELECT item_id, item_name, item_type, contentPath FROM SectionItems WHERE parent_id = {comp_id} AND parent_cid = '{cid}'")
             section_items = cursor.fetchall()
 
             
@@ -298,8 +267,8 @@ def submit_assignment(cid, assignId):
     try:
         
         cnx = mysql.connector.connect(user=db_user, password=db_password,
-                                       host='127.0.0.1',
-                                       database='Project')
+                                       host=db_host,
+                                       database=db_database)
         cursor = cnx.cursor()
 
         
@@ -307,9 +276,8 @@ def submit_assignment(cid, assignId):
         uid = content['uid'] 
         assignment_file = content.get('assignment_file')  
  
-        cursor.execute(f"INSERT INTO Submit (comp_id, cid, uid, assignmentFile) VALUES ('{assignId}', '{cid}', '{uid}', '{assignment_file}')")
-        
-        
+        cursor.execute(f"INSERT INTO Submit (comp_id, cid, uid, assignmentFile) VALUES ({assignId}, '{cid}', {uid}, '{assignment_file}')")
+          
         cnx.commit()
         cursor.close()
         cnx.close()
@@ -325,8 +293,8 @@ def grade_assignment(cid, assignId, uid):
     try:
        
         cnx = mysql.connector.connect(user=db_user, password=db_password,
-                                       host='127.0.0.1',
-                                       database='Project')
+                                       host=db_host,
+                                       database=db_database)
         cursor = cnx.cursor()
 
         content = request.json
@@ -335,7 +303,7 @@ def grade_assignment(cid, assignId, uid):
       
         cursor.execute(f"""
             UPDATE Submit
-            SET grade = '{grade}'
+            SET grade = {grade}
             WHERE comp_id = {assignId} AND cid = '{cid}' AND uid = {uid}
         """)
         
@@ -353,8 +321,8 @@ def grade_assignment(cid, assignId, uid):
 def update_student_average(cid, uid):
     try:
         cnx = mysql.connector.connect(user=db_user, password=db_password,
-                                       host='127.0.0.1',
-                                       database='Project')
+                                       host=db_host,
+                                       database=db_database)
         cursor = cnx.cursor(dictionary=True)
         
         cursor.execute(f"SELECT AVG(grade) AS average_grade FROM Submit WHERE cid = '{cid}' AND uid = {uid}GROUP BY uid")
@@ -389,8 +357,8 @@ def update_student_average(cid, uid):
 @app.route('/assignments/create', methods=['POST'])
 def create_assignment():
     try:
-        cnx = mysql.connector.connect(user='your_db_user', password='your_db_password',
-                                      host='127.0.0.1', database='your_database')
+        cnx = mysql.connector.connect(user=db_user, password=db_password,
+                                      host=db_host, database=db_database)
         cursor = cnx.cursor()
 
 
@@ -401,7 +369,7 @@ def create_assignment():
         description = content['description']
         instructions_file = content['instructions_file']
        
-        cursor.execute(f"INSERT INTO Component (cid, compType) VALUES ({cid}, 'Assignment')")
+        cursor.execute(f"INSERT INTO Component (cid, compType) VALUES ('{cid}', 'Assignment')")
         comp_id = cursor.lastrowid
 
         cursor.execute(f"INSERT INTO Assignment (comp_id, cid, dueDate, assignmentName, description, instructionsFile) VALUES ({comp_id}, '{cid}', '{due_date}', '{assignment_name}', '{description}','{instructions_file}')")
