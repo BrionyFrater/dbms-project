@@ -1,4 +1,7 @@
 CREATE DATABASE IF NOT EXISTS Project;
+-- CREATE USER 'project_user'@'localhost' IDENTIFIED BY '123';
+GRANT ALL PRIVILEGES ON Project.* TO 'project_user'@'localhost';
+
 USE Project;
 
 CREATE TABLE Admin (
@@ -65,19 +68,30 @@ CREATE TABLE Event (
 );
 
 CREATE TABLE Forum (
-    fid INT PRIMARY KEY,
+    comp_id INT,
     cid CHAR(8),
     name VARCHAR(255),
     dateCreated DATE,
-    FOREIGN KEY (cid) REFERENCES Course(cid)
+    PRIMARY KEY (comp_id, cid),
+    FOREIGN KEY (comp_id, cid) REFERENCES Component(comp_id, cid)
 );
 
 CREATE TABLE Thread (
     tid INT PRIMARY KEY,
-    fid INT,
+    parent INT,
     title VARCHAR(255),
     content TEXT,
-    FOREIGN KEY (fid) REFERENCES Forum(fid)
+    dateCreated DATE,
+    FOREIGN KEY (parent) REFERENCES Forum(comp_id)
+);
+
+CREATE TABLE Reply (
+    reply_id INT PRIMARY KEY,
+    parent INT,
+    author VARCHAR(255),
+    content TEXT,
+    dateCreated DATE,
+    FOREIGN KEY (parent) REFERENCES Thread(tid)
 );
 
 CREATE TABLE Component (
