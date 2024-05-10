@@ -9,6 +9,12 @@ loggedInUser = {
     'name': 'Greg Han',
     'role': 'Lecturer'
 }
+
+loggedInStud = {
+    'uid' : 400,
+    'name': 'Luke Richer',
+    'role': 'Student'
+}
 @app.route('/', methods=['GET'])
 def hello_world():
     return "Hello👋, This is the API for our Virtual Learning Environment"
@@ -282,4 +288,129 @@ def get_course_sections(cid):
 ## -------------------
 ## Assignments
 ## -------------------
+#submit assignment
+@app.route('/course/<cid>/<assignId>/submit', methods=['POST'])
+def submit_assignment(cid, assignId):
+    try:
+        
+        cnx = mysql.connector.connect(user=db_user, password=db_password,
+                                       host='127.0.0.1',
+                                       database='Project')
+        cursor = cnx.cursor()
 
+        
+        content = request.json
+        uid = content['uid'] 
+        assignment_file = content.get('assignment_file')  
+ 
+        cursor.execute(f"INSERT INTO Submit (comp_id, cid, uid, assignmentFile) VALUES ('{assignId}', '{cid}', '{uid}', '{assignment_file}')")
+        
+        
+        cnx.commit()
+        cursor.close()
+        cnx.close()
+
+       
+        return jsonify({"success": "Assignment submitted successfully"}), 201
+    except Exception as e:
+        return make_response({'error': str(e)}, 400)
+
+#give grade
+@app.route('/course/<cid>/<assignId>/<uid>/grade', methods=['PUT'])
+def grade_assignment(cid, assignId, uid):
+    try:
+       
+        cnx = mysql.connector.connect(user=db_user, password=db_password,
+                                       host='127.0.0.1',
+                                       database='Project')
+        cursor = cnx.cursor()
+
+        content = request.json
+        grade = content['grade']
+
+      
+        cursor.execute(f"""
+            UPDATE Submit
+            SET grade = '{grade}'
+            WHERE comp_id = {assignId} AND cid = '{cid}' AND uid = {uid}
+        """)
+        
+        cnx.commit()
+        cursor.close()
+        cnx.close()
+
+        return jsonify({"success": "Grade recorded successfully"}), 200
+
+    except Exception as e:
+        return make_response({'error': str(e)}, 400)
+    
+#recalculate average
+@app.route('/course/<cid>/<uid>/average', methods=['POST'])
+def update_student_average(cid, uid):
+    try:
+        cnx = mysql.connector.connect(user=db_user, password=db_password,
+                                       host='127.0.0.1',
+                                       database='Project')
+        cursor = cnx.cursor(dictionary=True)
+        
+        cursor.execute(f"SELECT AVG(grade) AS average_grade FROM Submit WHERE cid = '{cid}' AND uid = {uid}GROUP BY uid")
+
+
+        # get the avg as a dictionary
+        result = cursor.fetchone()
+
+        if result:
+            average_grade = result['average_grade']
+        else:
+            return make_response({'error': 'There are no grades for the student for this course'}, 404)
+        
+
+        # Check if the student's grade already exists in the Enrol table
+        cursor.execute(f"SELECT * FROM Enrol WHERE cid = '{cid}' AND uid = {uid}")
+        existing_record = cursor.fetchone()
+
+        if existing_record:
+            cursor.execute(f"UPDATE Enrol SET grade = {average_grade} WHERE cid = '{cid}' AND uid = {uid}")
+        else:
+            cursor.execute(f"INSERT INTO Enrol (cid, uid, grade) VALUES ('{cid}', {uid}, {average_grade})")
+
+        cnx.commit()
+        cursor.close()
+        cnx.close()
+
+        return jsonify({"success": "Average recorded grade"}), 201
+    except Exception as e:
+        return make_response({'error': str(e)}, 400)
+    
+@app.route('/assignments/create', methods=['POST'])
+def create_assignment():
+    try:
+        cnx = mysql.connector.connect(user='your_db_user', password='your_db_password',
+                                      host='127.0.0.1', database='your_database')
+        cursor = cnx.cursor()
+
+
+        content = request.get_json
+        cid = content['cid']
+        due_date = content['due_date']
+        assignment_name = content['assignment_name']
+        description = content['description']
+        instructions_file = content['instructions_file']
+       
+        cursor.execute(f"INSERT INTO Component (cid, compType) VALUES ({cid}, 'Assignment')")
+        comp_id = cursor.lastrowid
+
+        cursor.execute(f"INSERT INTO Assignment (comp_id, cid, dueDate, assignmentName, description, instructionsFile) VALUES ({comp_id}, '{cid}', '{due_date}', '{assignment_name}', '{description}','{instructions_file}')")
+
+        cnx.commit()
+        cursor.close()
+        cnx.close()
+
+        return jsonify({"message": "Assignment created"}), 201
+    except Exception as e:
+        return make_response(jsonify({"error": str(e)}), 400)
+
+
+## -------------------
+## Reports
+## -------------------
