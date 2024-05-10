@@ -66,10 +66,15 @@ def get_threads(forum_id):
             }
 
             # Get replies for the current thread
-            cursor.execute(f"SELECT reply_id, content, dateCreated FROM Reply WHERE parent = {tid}")
-            for reply_id, reply_content, reply_dateCreated in cursor:
+            cursor.execute(f"SELECT reply_id, author, content, dateCreated FROM Reply WHERE parent = {tid}")
+            for reply_id, reply_author, reply_content, reply_dateCreated in cursor:
+
+                cursor.execute(f"SELECT fname, lname FROM Account WHERE uid = {reply_author}")
+                fname, lname = cursor.fetchone()
+
                 reply = {
                     'reply_id': reply_id,
+                    'author': fname + " " + lname,
                     'content': reply_content,
                     'dateCreated': reply_dateCreated
                 }
@@ -192,15 +197,14 @@ def add_section():
 
         cid = content['cid']
         secName = content['section_name']
+        lect_id = content['uid']
 
         cursor.execute(f"INSERT INTO Component (cid, compType) VALUES ({cid}, 'Section')")
 
         comp_id = cursor.lastrowid
         
-        cursor.execute(f"INSERT INTO Section (parent, author, content, dateCreated) VALUES ({comp_id}, {cid}, {secName})")
+        cursor.execute(f"INSERT INTO Section VALUES ({comp_id}, {cid}, {secName})")
 
-
-        lect_id = loggedInUser['uid']
 
         cursor.execute(f"INSERT INTO ModifySection VALUES ({lect_id}, {comp_id}, {cid})")
 

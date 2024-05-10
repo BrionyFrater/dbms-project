@@ -89,7 +89,7 @@ CREATE TABLE Component (
 );
 
 CREATE TABLE Event (
-    eid INT PRIMARY KEY,
+    --eid INT PRIMARY KEY,
     cid CHAR(8),
     comp_id INT,
     name VARCHAR(255),
@@ -97,32 +97,38 @@ CREATE TABLE Event (
     dateCreated DATE,
     dueDate DATE,
 
-    --PRIMARY KEY (comp_id, cid)
-    
-    FOREIGN KEY (cid) REFERENCES Course(cid),
+    PRIMARY KEY (comp_id, cid)
     FOREIGN KEY (comp_id, cid) REFERENCES Component(comp_id, cid)
 );
 
 CREATE TABLE Forum (
-    fid INT PRIMARY KEY,
+    --fid INT PRIMARY KEY,
     cid CHAR(8),
     comp_id INT,
     name VARCHAR(255),
     dateCreated DATE,
 
     --added new primary
-    --PRIMARY KEY (comp_id, cid)
-
-    FOREIGN KEY (cid) REFERENCES Course(cid),
+    PRIMARY KEY (comp_id, cid)
     FOREIGN KEY (comp_id, cid) REFERENCES Component(comp_id, cid)
 );
 
 CREATE TABLE Thread (
-    tid INT PRIMARY KEY,
-    fid INT,
+    tid INT AUTO_INCREMENT PRIMARY KEY,
+    parent INT,
     title VARCHAR(255),
     content TEXT,
-    FOREIGN KEY (fid) REFERENCES Forum(fid)
+    dateCreated DATE,
+    FOREIGN KEY (parent) REFERENCES Forum(comp_id) ON DELETE CASCADE
+);
+
+CREATE TABLE Reply (
+    reply_id INT AUTO_INCREMENT PRIMARY KEY,
+    parent INT,
+    author VARCHAR(255),
+    content TEXT,
+    dateCreated DATE,
+    FOREIGN KEY (parent) REFERENCES Thread(tid)
 );
 
 CREATE TABLE Section (
@@ -131,6 +137,32 @@ CREATE TABLE Section (
     secName VARCHAR(255),
     PRIMARY KEY (comp_id, cid),
     FOREIGN KEY (comp_id, cid) REFERENCES Component(comp_id, cid)
+);
+
+CREATE TABLE ModifySection (
+    uid INT,
+    comp_id INT,
+    cid CHAR(8),
+    FOREIGN KEY (uid) REFERENCES Account(uid),
+    FOREIGN KEY (comp_id, cid) REFERENCES Section(comp_id, cid)
+);
+
+CREATE TABLE ModifyItem (
+    uid INT,
+    comp_id INT,
+    cid CHAR(8),
+    FOREIGN KEY (uid) REFERENCES Account(uid),
+    FOREIGN KEY (comp_id, cid) REFERENCES Section(comp_id, cid)
+);
+
+CREATE TABLE SectionItems (
+    item_id INT AUTO_INCREMENT PRIMARY KEY,
+    item_name VARCHAR(255),
+    item_type VARCHAR(255),
+    contentPath VARCHAR(255),
+    parent_id INT,
+    parent_cid CHAR(8),
+    FOREIGN KEY (parent_id, parent_cid) REFERENCES Section(comp_id, cid)
 );
 
 CREATE TABLE Assignment (
@@ -148,7 +180,7 @@ CREATE TABLE Submit (
     comp_id INT,
     cid CHAR(8),
     uid INT,
-    grade FLOAT,
+    grade INT,
     assignmentFile VARCHAR(50),
     PRIMARY KEY (comp_id, cid, uid),
     FOREIGN KEY (comp_id, cid) REFERENCES Component(comp_id, cid),
@@ -156,18 +188,5 @@ CREATE TABLE Submit (
 );
 
 
-CREATE TABLE ModifySection (
-    uid INT,
-    comp_id INT,
-    cid CHAR(8),
-    FOREIGN KEY (uid) REFERENCES Member(uid),
-    FOREIGN KEY (comp_id, cid) REFERENCES Section(comp_id, cid)
-);
 
-CREATE TABLE SectionItems (
-    item_id INT PRIMARY KEY,
-    name VARCHAR(255),
-    type VARCHAR(255),
-    comp_id INT,
-    FOREIGN KEY (comp_id) REFERENCES Component(comp_id)
-);
+
