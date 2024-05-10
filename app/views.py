@@ -3,14 +3,13 @@ from flask import render_template, request, make_response
 from app import app
 import mysql.connector
 
-db_config = {
-    'user': 'uwi_user',
-    'password': 'uwi876',
-    'host': '127.0.0.1',
-    'database': 'Project'
-}
+db_user = 'uwi_user'
+db_password = 'comp3161'
+db_host = '127.0.0.1'
+db_database = 'Project'
 
-conn = mysql.connector.connect(**db_config)
+conn = mysql.connector.connect(user=db_user, password=db_password,
+                               host=db_host, database=db_database)
 
 @app.route('/registeruser', methods=['POST'])
 def registerUser():
